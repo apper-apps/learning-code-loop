@@ -5,7 +5,7 @@ import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
 import ApperIcon from "@/components/ApperIcon";
 
-const ProgramCard = ({ program, className }) => {
+const ProgramCard = ({ program, className, showRoleBasedButtons = false, canEnterCourse = false, onJoinWaitlist }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -53,12 +53,31 @@ const ProgramCard = ({ program, className }) => {
         </div>
       </div>
 
-      <div className="flex items-center space-x-3">
-        <Link to={`/program/${program.slug}`} className="flex-1">
-          <Button className="w-full">
-            View Details
-          </Button>
-        </Link>
+<div className="flex items-center space-x-3">
+        {showRoleBasedButtons ? (
+          <>
+            {canEnterCourse ? (
+              <Link to={`/program/${program.slug}`} className="flex-1">
+                <Button className="w-full">
+                  Enter Course
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                className="flex-1" 
+                onClick={() => onJoinWaitlist?.(program)}
+              >
+                Join Waitlist
+              </Button>
+            )}
+          </>
+        ) : (
+          <Link to={`/program/${program.slug}`} className="flex-1">
+            <Button className="w-full">
+              View Details
+            </Button>
+          </Link>
+        )}
         <Button variant="outline" size="default" className="px-4">
           <ApperIcon name="Heart" size={16} />
         </Button>

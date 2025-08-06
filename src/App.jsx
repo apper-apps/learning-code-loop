@@ -18,6 +18,7 @@ import PromptPassword from "@/components/pages/PromptPassword";
 // Main Pages
 import HomePage from "@/components/pages/HomePage";
 import ProgramsPage from "@/components/pages/ProgramsPage";
+import ProgramMasterPage from "@/components/pages/ProgramMasterPage";
 import ProgramDetailPage from "@/components/pages/ProgramDetailPage";
 import LectureDetailPage from "@/components/pages/LectureDetailPage";
 import InsightPage from "@/components/pages/InsightPage";
@@ -144,8 +145,9 @@ function App() {
           <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
           <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
           <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
+<Route index element={<HomePage />} />
             <Route path="program" element={<ProgramsPage />} />
+            <Route path="program/master" element={<ProgramMasterPage />} />
             <Route path="program/:slug" element={<ProgramDetailPage />} />
             <Route path="lecture/:id" element={<LectureDetailPage />} />
             <Route path="insight" element={<InsightPage />} />
