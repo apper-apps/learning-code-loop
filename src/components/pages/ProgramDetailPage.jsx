@@ -310,9 +310,9 @@ const ProgramDetailPage = () => {
                       </div>
                     )}
                   </motion.div>
-                ))
+))
               )}
-            </div>
+            </motion.div>
           </>
         ) : (
           // Free/Member role view - Only show description and waitlist button
