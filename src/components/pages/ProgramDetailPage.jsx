@@ -1,31 +1,48 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { getProgramBySlug } from "@/services/api/programService";
-import { getLecturesByProgramId } from "@/services/api/lectureService";
-import { addToWaitlist } from "@/services/api/waitlistService";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getProgramBySlug } from "@/services/api/programService";
+import { addToWaitlist } from "@/services/api/waitlistService";
+import { getLecturesByProgramId } from "@/services/api/lectureService";
+import ApperIcon from "@/components/ApperIcon";
 import LectureList from "@/components/organisms/LectureList";
-import Button from "@/components/atoms/Button";
-import Badge from "@/components/atoms/Badge";
-import Input from "@/components/atoms/Input";
-import Label from "@/components/atoms/Label";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Label from "@/components/atoms/Label";
 const ProgramDetailPage = () => {
   const { slug } = useParams();
   const { currentUser, isAdmin } = useCurrentUser();
   const [program, setProgram] = useState(null);
   const [lectures, setLectures] = useState([]);
+  const [cohorts, setCohorts] = useState([]);
+  const [selectedCohort, setSelectedCohort] = useState("");
+  const [courseType, setCourseType] = useState("common"); // "common" or "cohort"
+  const [accordionOpen, setAccordionOpen] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [submittingWaitlist, setSubmittingWaitlist] = useState(false);
+
+  // Check if user has master access
+  const getUserRole = () => {
+    if (!currentUser?.accounts?.[0]) return null;
+    return currentUser.accounts[0].role || currentUser.accounts[0].userRole;
+  };
+
+  const hasMasterAccess = () => {
+    const role = getUserRole();
+    return role === "master" || role === "both";
+  };
+
   const loadProgramData = async () => {
+const loadProgramData = async () => {
     try {
       setLoading(true);
       setError("");
@@ -35,6 +52,19 @@ const ProgramDetailPage = () => {
       
       setProgram(programData);
       setLectures(lecturesData);
+      
+      // For demo purposes, set mock cohort data
+      // In real implementation, fetch from cohort service
+      setCohorts([
+        { Id: 1, Name: "Cohort 2024-Q1" },
+        { Id: 2, Name: "Cohort 2024-Q2" },
+        { Id: 3, Name: "Cohort 2024-Q3" }
+      ]);
+      
+      // Set default cohort if user has master access
+      if (hasMasterAccess() && currentUser?.master_cohort) {
+        setSelectedCohort(currentUser.master_cohort);
+      }
       
     } catch (err) {
       console.error("Failed to load program:", err);
@@ -88,37 +118,88 @@ const ProgramDetailPage = () => {
         </nav>
 
         {/* Program Header */}
-        <div className="mb-12">
+<div className="mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             className="card-navy p-8"
           >
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-6 lg:space-y-0">
-              <div className="flex-1 space-y-6">
+            {hasMasterAccess() ? (
+              // Master/Both users - Full interface
+              <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="p-3 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-xl">
                     <ApperIcon 
-                      name={program.type === "master" ? "Crown" : "Users"} 
+                      name="Crown" 
                       size={32} 
-                      className={program.type === "master" ? "text-yellow-400" : "text-blue-400"}
+                      className="text-yellow-400"
                     />
                   </div>
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h1 className="text-3xl md:text-4xl font-bold text-white">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                         {program.title}
                       </h1>
-                      <Badge variant={program.type === "master" ? "featured" : "primary"}>
-                        {program.type.toUpperCase()}
-                      </Badge>
+                      {isAdmin && (
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2">
+                          <ApperIcon name="Plus" size={16} />
+                          <span>Add Lecture</span>
+                        </Button>
+                      )}
                     </div>
-                    {program.has_common_course && (
-                      <Badge variant="success" className="mb-4">
-                        Includes Common Course
-                      </Badge>
-                    )}
+                    <Badge variant="featured" className="mb-4">
+                      MASTER PROGRAM
+                    </Badge>
                   </div>
+                </div>
+
+                {/* Cohort Selection */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="cohort-select" className="text-white mb-2 block">Select Cohort</Label>
+                    <select
+                      id="cohort-select"
+                      value={selectedCohort}
+                      onChange={(e) => setSelectedCohort(e.target.value)}
+                      className="w-full px-3 py-2 bg-navy-800 border border-blue-400/20 rounded-md text-white focus:outline-none focus:border-blue-400"
+                    >
+                      <option value="">Select a cohort</option>
+                      {cohorts.map(cohort => (
+                        <option key={cohort.Id} value={cohort.Name}>
+                          {cohort.Name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Course Type Toggle */}
+                  {program.has_common_course && (
+                    <div className="flex-1">
+                      <Label className="text-white mb-2 block">Course Type</Label>
+                      <div className="flex bg-navy-800 rounded-md border border-blue-400/20 p-1">
+                        <button
+                          onClick={() => setCourseType("common")}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                            courseType === "common"
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Common Course
+                        </button>
+                        <button
+                          onClick={() => setCourseType("cohort")}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                            courseType === "cohort"
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Cohort Course
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-lg text-gray-300 leading-relaxed">
@@ -140,71 +221,76 @@ const ProgramDetailPage = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="lg:w-80 space-y-4">
-                <div className="text-center lg:text-right">
-                  <div className="text-4xl font-bold text-white mb-2">${program.price}</div>
-                  <p className="text-gray-400">One-time payment</p>
+            ) : (
+              // Non-master users - Simple header + Join Waitlist
+              <div className="text-center space-y-6">
+                <div className="flex items-center justify-center space-x-4 mb-6">
+                  <div className="p-3 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-xl">
+                    <ApperIcon name="Crown" size={32} className="text-yellow-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                      {program.title}
+                    </h1>
+                    <Badge variant="featured">MASTER PROGRAM</Badge>
+                  </div>
                 </div>
                 
-                <div className="flex flex-col space-y-3">
-                  <Button size="lg" className="w-full">
-                    <ApperIcon name="CreditCard" size={20} className="mr-2" />
-                    Enroll Now
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    onClick={() => setShowWaitlist(true)}
-                    className="w-full"
-                  >
-                    <ApperIcon name="Mail" size={20} className="mr-2" />
-                    Join Waitlist
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+                <p className="text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto">
+                  {program.description}
+                </p>
 
-        {/* Course Content */}
-        <div className="space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-<div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">Course Content</h2>
-                <div className="text-gray-400">
-                  {lectures.length} lectures • {lectures.reduce((acc, lecture) => acc + parseInt(lecture.duration), 0)} minutes
-                </div>
-              </div>
-              {isAdmin && (
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2">
-                  <ApperIcon name="Plus" size={16} />
-                  <span>Add Lecture</span>
+                <Button 
+                  size="lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+                  onClick={() => setShowWaitlist(true)}
+                >
+                  <ApperIcon name="Mail" size={24} className="mr-3" />
+                  Join Wait-list
                 </Button>
-              )}
-            </div>
-
-            {lectures.length === 0 ? (
-              <Empty
-                title="No lectures available"
-                message="This program doesn't have any lectures yet. Check back soon!"
-                icon="BookOpen"
-              />
-            ) : (
-              <LectureList 
-                lectures={lectures} 
-                programType={program.type} 
-                currentUser={currentUser}
-              />
+              </div>
             )}
           </motion.div>
-        </div>
+</div>
 
+        {/* Course Content - Only show for master users */}
+        {hasMasterAccess() && (
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Course Content</h2>
+                  <div className="text-gray-400">
+                    {lectures.length} lectures • {lectures.reduce((acc, lecture) => acc + parseInt(lecture.duration || 0), 0)} minutes
+                  </div>
+                </div>
+              </div>
+
+              {lectures.length === 0 ? (
+                <Empty
+                  title="No lectures available"
+                  message="This program doesn't have any lectures yet. Check back soon!"
+                  icon="BookOpen"
+                />
+              ) : (
+                <LectureList 
+                  lectures={lectures} 
+                  programType={program.type} 
+                  currentUser={currentUser}
+                  selectedCohort={selectedCohort}
+                  courseType={courseType}
+                  accordionOpen={accordionOpen}
+                  setAccordionOpen={setAccordionOpen}
+                  hasMasterAccess={hasMasterAccess()}
+                />
+              )}
+            </motion.div>
+          </div>
+        )}
         {/* Waitlist Modal */}
         {showWaitlist && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
