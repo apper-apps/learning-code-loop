@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import Button from "@/components/atoms/Button";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { AnimatePresence, motion } from "framer-motion";
+import { AuthContext } from "../../App";
 import ApperIcon from "@/components/ApperIcon";
-
+import Button from "@/components/atoms/Button";
 const AuthButtons = () => {
-  const { currentUser, logout } = useCurrentUser();
+const { user: currentUser, isAuthenticated } = useSelector((state) => state.user);
+  const { logout } = useContext(AuthContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -22,15 +24,19 @@ const AuthButtons = () => {
     };
   }, []);
 
-  if (!currentUser) {
+  if (!isAuthenticated || !currentUser) {
     return (
       <div className="flex items-center space-x-3">
-        <Button variant="ghost" size="sm">
-          Log In
-        </Button>
-        <Button variant="primary" size="sm">
-          Sign Up
-        </Button>
+        <Link to="/login">
+          <Button variant="ghost" size="sm">
+            Log In
+          </Button>
+        </Link>
+        <Link to="/signup">
+          <Button variant="primary" size="sm">
+            Sign Up
+          </Button>
+        </Link>
       </div>
     );
   }
@@ -41,20 +47,20 @@ const AuthButtons = () => {
         onClick={() => setShowDropdown(!showDropdown)}
         className="flex items-center space-x-2 p-2 rounded-lg hover:bg-navy-800/50 transition-colors duration-200"
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-          {currentUser.avatar ? (
+<div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+          {currentUser.picture ? (
             <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
+              src={currentUser.picture}
+              alt={`${currentUser.firstName} ${currentUser.lastName}`}
               className="w-full h-full rounded-full object-cover"
             />
           ) : (
             <span className="text-white text-sm font-medium">
-              {currentUser.name?.charAt(0) || "U"}
+              {currentUser.firstName?.charAt(0) || "U"}
             </span>
           )}
         </div>
-        <ApperIcon 
+        <ApperIcon
           name="ChevronDown" 
           size={16} 
           className={`text-gray-400 transition-transform duration-200 ${
@@ -72,9 +78,9 @@ const AuthButtons = () => {
             transition={{ duration: 0.15 }}
             className="absolute right-0 mt-2 w-48 bg-navy-800 border border-blue-400/20 rounded-lg shadow-xl z-50"
           >
-            <div className="p-4 border-b border-gray-700">
-              <p className="text-white font-medium">{currentUser.name}</p>
-              <p className="text-gray-400 text-sm">{currentUser.email}</p>
+<div className="p-4 border-b border-gray-700">
+              <p className="text-white font-medium">{currentUser.firstName} {currentUser.lastName}</p>
+              <p className="text-gray-400 text-sm">{currentUser.emailAddress}</p>
             </div>
             <div className="p-2">
               <button className="w-full flex items-center space-x-2 px-3 py-2 text-left text-gray-300 hover:text-white hover:bg-navy-700 rounded-md transition-colors duration-150">

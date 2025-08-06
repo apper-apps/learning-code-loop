@@ -84,7 +84,7 @@ const TopNavigation = () => {
               >
                 {item.name}
               </Link>
-            ))}
+))}
           </div>
 
           {/* Desktop Auth */}

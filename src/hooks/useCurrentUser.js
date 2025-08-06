@@ -1,38 +1,12 @@
-import { useState, useEffect } from "react";
+import { useSelector } from 'react-redux';
 
-// Mock current user state
+// Hook to get current user from Redux store
 export const useCurrentUser = () => {
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
-    // Simulate loading user from localStorage or API
-    const mockUser = {
-      Id: 1,
-      email: "admin@example.com",
-      name: "Admin User",
-      role: "both",
-      master_cohort: "2024-spring",
-      is_admin: true,
-      avatar: null
-    };
-    
-    // Uncomment to simulate logged in admin user
-    // setCurrentUser(mockUser);
-  }, []);
-
-  const login = (user) => {
-    setCurrentUser(user);
-  };
-
-  const logout = () => {
-    setCurrentUser(null);
-  };
+  const { user, isAuthenticated } = useSelector((state) => state.user);
 
   return {
-    currentUser,
-    login,
-    logout,
-    isLoggedIn: currentUser !== null,
-    isAdmin: currentUser?.is_admin || false
+    currentUser: user,
+    isLoggedIn: isAuthenticated,
+    isAdmin: user?.accounts?.[0]?.isAdmin || false
   };
 };
