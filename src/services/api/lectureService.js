@@ -19,10 +19,16 @@ export const getLectures = async () => {
         { field: { Name: "description" } },
         { field: { Name: "videoUrl" } },
         { field: { Name: "duration" } },
-        { field: { Name: "created_at" } }
+        { field: { Name: "created_at" } },
+        { field: { Name: "level" } },
+        { field: { Name: "program_slug" } },
+        { field: { Name: "cohort_number" } },
+        { field: { Name: "category" } },
+        { field: { Name: "embed_url" } },
+        { field: { Name: "sort_order" } }
       ],
       orderBy: [
-        { fieldName: "created_at", sorttype: "DESC" }
+        { fieldName: "sort_order", sorttype: "ASC" }
       ]
     };
     
@@ -57,7 +63,13 @@ export const getLecturesByProgramId = async (programId) => {
         { field: { Name: "description" } },
         { field: { Name: "videoUrl" } },
         { field: { Name: "duration" } },
-        { field: { Name: "created_at" } }
+        { field: { Name: "created_at" } },
+        { field: { Name: "level" } },
+        { field: { Name: "program_slug" } },
+        { field: { Name: "cohort_number" } },
+        { field: { Name: "category" } },
+        { field: { Name: "embed_url" } },
+        { field: { Name: "sort_order" } }
       ],
       where: [
         { FieldName: "programId", Operator: "EqualTo", Values: [parseInt(programId)] }
@@ -98,7 +110,13 @@ export const getLectureById = async (id) => {
         { field: { Name: "description" } },
         { field: { Name: "videoUrl" } },
         { field: { Name: "duration" } },
-        { field: { Name: "created_at" } }
+        { field: { Name: "created_at" } },
+        { field: { Name: "level" } },
+        { field: { Name: "program_slug" } },
+        { field: { Name: "cohort_number" } },
+        { field: { Name: "category" } },
+        { field: { Name: "embed_url" } },
+        { field: { Name: "sort_order" } }
       ]
     };
     
@@ -135,10 +153,16 @@ export const createLecture = async (lectureData) => {
       Tags: lectureData.Tags || "",
       programId: Number(lectureData.programId),
       title: lectureData.title,
-      description: lectureData.description,
+      description: lectureData.description || "",
       videoUrl: lectureData.videoUrl || "",
-      duration: lectureData.duration,
-      created_at: new Date().toISOString()
+      duration: lectureData.duration || "",
+      created_at: new Date().toISOString(),
+      level: lectureData.level,
+      program_slug: lectureData.program_slug,
+      cohort_number: lectureData.cohort_number ? Number(lectureData.cohort_number) : null,
+      category: lectureData.category,
+      embed_url: lectureData.embed_url,
+      sort_order: Number(lectureData.sort_order)
     };
     
     const params = {
@@ -195,9 +219,15 @@ export const updateLecture = async (id, lectureData) => {
       Tags: lectureData.Tags || "",
       programId: Number(lectureData.programId),
       title: lectureData.title,
-      description: lectureData.description,
+      description: lectureData.description || "",
       videoUrl: lectureData.videoUrl || "",
-      duration: lectureData.duration
+      duration: lectureData.duration || "",
+      level: lectureData.level,
+      program_slug: lectureData.program_slug,
+      cohort_number: lectureData.cohort_number ? Number(lectureData.cohort_number) : null,
+      category: lectureData.category,
+      embed_url: lectureData.embed_url,
+      sort_order: Number(lectureData.sort_order)
     };
     
     const params = {
