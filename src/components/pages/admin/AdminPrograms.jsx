@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { getPrograms, createProgram, updateProgram, deleteProgram } from "@/services/api/programService";
-import Button from "@/components/atoms/Button";
-import Badge from "@/components/atoms/Badge";
-import Input from "@/components/atoms/Input";
-import Label from "@/components/atoms/Label";
+import { formatDistanceToNow } from "date-fns";
+import { createProgram, deleteProgram, getPrograms, updateProgram } from "@/services/api/programService";
+import ApperIcon from "@/components/ApperIcon";
 import SearchBar from "@/components/molecules/SearchBar";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import ApperIcon from "@/components/ApperIcon";
-import { formatDistanceToNow } from "date-fns";
+import Badge from "@/components/atoms/Badge";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Label from "@/components/atoms/Label";
 
 const AdminPrograms = () => {
   const { isAdmin } = useCurrentUser();
@@ -77,7 +77,7 @@ const AdminPrograms = () => {
     setFilteredPrograms(filtered);
   }, [programs, selectedType, searchQuery]);
 
-  const handleCreateProgram = async (e) => {
+const handleCreateProgram = async (e) => {
     e.preventDefault();
     try {
       const formData = {
@@ -102,7 +102,14 @@ const AdminPrograms = () => {
       });
       setShowCreateModal(false);
       toast.success("Program created successfully!");
+toast.success("Program created successfully!");
       
+      // Dispatch custom event to refresh program dropdowns and listings
+      if (typeof window !== 'undefined' && window.CustomEvent) {
+        window.dispatchEvent(new window.CustomEvent('programsUpdated', { 
+          detail: { newProgram, action: 'created' } 
+        }));
+      }
       // Auto-navigate to the master program page if type is master
       if (formData.type === "master") {
         navigate(`/program/master/${formData.slug}`);

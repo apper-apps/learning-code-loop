@@ -13,7 +13,7 @@ const TopNavigation = () => {
   const [programs, setPrograms] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
+useEffect(() => {
     const loadPrograms = async () => {
       try {
         const data = await getPrograms();
@@ -22,7 +22,19 @@ const TopNavigation = () => {
         console.error("Failed to load programs:", error);
       }
     };
+    
     loadPrograms();
+    
+    // Listen for program updates to refresh the dropdown
+    const handleProgramsUpdate = () => {
+      loadPrograms();
+    };
+    
+    window.addEventListener('programsUpdated', handleProgramsUpdate);
+    
+    return () => {
+      window.removeEventListener('programsUpdated', handleProgramsUpdate);
+    };
   }, []);
 
   const navItems = [
