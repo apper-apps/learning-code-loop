@@ -16,7 +16,6 @@ import ResetPassword from "@/components/pages/ResetPassword";
 import PromptPassword from "@/components/pages/PromptPassword";
 
 // Main Pages
-import PublicHome from "@/components/pages/PublicHome";
 import HomePage from "@/components/pages/HomePage";
 import ProgramsPage from "@/components/pages/ProgramsPage";
 import ProgramMasterPage from "@/components/pages/ProgramMasterPage";
@@ -145,9 +144,8 @@ function App() {
           <Route path="/error" element={<ErrorPage />} />
           <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
           <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
-<Route path="/" element={<PublicHome />} />
-          <Route path="/dashboard" element={<Layout />}>
-            <Route index element={<HomePage />} />
+          <Route path="/" element={<Layout />}>
+<Route index element={<HomePage />} />
             <Route path="program" element={<ProgramsPage />} />
 <Route path="program/master" element={<ProgramMasterPage />} />
             <Route path="program/master/:slug" element={<ProgramDetailPage />} />

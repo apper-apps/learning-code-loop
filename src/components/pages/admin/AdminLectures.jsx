@@ -26,15 +26,14 @@ const AdminLectures = () => {
   const [selectedProgram, setSelectedProgram] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingLecture, setEditingLecture] = useState(null);
-const [lectureForm, setLectureForm] = useState({
-    programId: "",
-    program_slug: "",
+  const [lectureForm, setLectureForm] = useState({
+    program_id: "",
     title: "",
+    content: "",
     category: "",
-    level: "",
-    cohort_number: "",
-    embed_url: "",
-    sort_order: ""
+    level: "member_basic",
+    order: "",
+    duration: ""
   });
 
   const loadData = async () => {
@@ -78,33 +77,24 @@ const [lectureForm, setLectureForm] = useState({
     setFilteredLectures(filtered);
   }, [lectures, selectedProgram, searchQuery]);
 
-const handleCreateLecture = async (e) => {
+  const handleCreateLecture = async (e) => {
     e.preventDefault();
-    
-    // Validate embed_url starts with https://
-    if (lectureForm.embed_url && !lectureForm.embed_url.startsWith('https://')) {
-      toast.error("Video URL must start with https://");
-      return;
-    }
-    
     try {
       const formData = {
         ...lectureForm,
-        programId: parseInt(lectureForm.programId),
-        cohort_number: lectureForm.cohort_number ? parseInt(lectureForm.cohort_number) : null,
-        sort_order: parseInt(lectureForm.sort_order)
+        program_id: parseInt(lectureForm.program_id),
+        order: parseInt(lectureForm.order)
       };
       const newLecture = await createLecture(formData);
       setLectures(prev => [newLecture, ...prev]);
       setLectureForm({
-        programId: "",
-        program_slug: "",
+        program_id: "",
         title: "",
+        content: "",
         category: "",
-        level: "",
-        cohort_number: "",
-        embed_url: "",
-        sort_order: ""
+        level: "member_basic",
+        order: "",
+        duration: ""
       });
       setShowCreateModal(false);
       toast.success("Lecture created successfully!");
@@ -114,22 +104,15 @@ const handleCreateLecture = async (e) => {
     }
   };
 
-const handleUpdateLecture = async (e) => {
+  const handleUpdateLecture = async (e) => {
     e.preventDefault();
     if (!editingLecture) return;
-    
-    // Validate embed_url starts with https://
-    if (lectureForm.embed_url && !lectureForm.embed_url.startsWith('https://')) {
-      toast.error("Video URL must start with https://");
-      return;
-    }
     
     try {
       const formData = {
         ...lectureForm,
-        programId: parseInt(lectureForm.programId),
-        cohort_number: lectureForm.cohort_number ? parseInt(lectureForm.cohort_number) : null,
-        sort_order: parseInt(lectureForm.sort_order)
+        program_id: parseInt(lectureForm.program_id),
+        order: parseInt(lectureForm.order)
       };
       const updatedLecture = await updateLecture(editingLecture.Id, formData);
       setLectures(prev => prev.map(lecture => 
@@ -137,14 +120,13 @@ const handleUpdateLecture = async (e) => {
       ));
       setEditingLecture(null);
       setLectureForm({
-        programId: "",
-        program_slug: "",
+        program_id: "",
         title: "",
+        content: "",
         category: "",
-        level: "",
-        cohort_number: "",
-        embed_url: "",
-        sort_order: ""
+        level: "member_basic",
+        order: "",
+        duration: ""
       });
       toast.success("Lecture updated successfully!");
     } catch (err) {
@@ -166,50 +148,36 @@ const handleUpdateLecture = async (e) => {
     }
   };
 
-const openEditModal = (lecture) => {
+  const openEditModal = (lecture) => {
     setEditingLecture(lecture);
     setLectureForm({
-      programId: lecture.programId?.toString() || "",
-      program_slug: lecture.program_slug || "",
-      title: lecture.title || "",
-      category: lecture.category || "",
-      level: lecture.level || "",
-      cohort_number: lecture.cohort_number?.toString() || "",
-      embed_url: lecture.embed_url || "",
-      sort_order: lecture.sort_order?.toString() || ""
+      program_id: lecture.program_id.toString(),
+      title: lecture.title,
+      content: lecture.content,
+      category: lecture.category,
+      level: lecture.level,
+      order: lecture.order.toString(),
+      duration: lecture.duration
     });
   };
 
-const closeModals = () => {
+  const closeModals = () => {
     setShowCreateModal(false);
     setEditingLecture(null);
     setLectureForm({
-      programId: "",
-      program_slug: "",
+      program_id: "",
       title: "",
+      content: "",
       category: "",
-      level: "",
-      cohort_number: "",
-      embed_url: "",
-      sort_order: ""
+      level: "member_basic",
+      order: "",
+      duration: ""
     });
   };
 
-const getProgramTitle = (programId) => {
+  const getProgramTitle = (programId) => {
     const program = programs.find(p => p.Id === programId);
     return program ? program.title : "Unknown Program";
-  };
-
-  const handleProgramSelect = (programId) => {
-    const program = programs.find(p => p.Id === parseInt(programId));
-    if (program) {
-      setLectureForm(prev => ({
-        ...prev,
-        programId: programId,
-        program_slug: program.slug || "",
-        level: program.type === 'master' ? 'master' : 'member'
-      }));
-    }
   };
 
   const getLevelBadge = (level) => {
@@ -364,7 +332,7 @@ const getProgramTitle = (programId) => {
         )}
 
         {/* Create/Edit Modal */}
-{(showCreateModal || editingLecture) && (
+        {(showCreateModal || editingLecture) && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -389,8 +357,8 @@ const getProgramTitle = (programId) => {
                     <Label htmlFor="lecture-program">Program</Label>
                     <select
                       id="lecture-program"
-                      value={lectureForm.programId}
-                      onChange={(e) => handleProgramSelect(e.target.value)}
+                      value={lectureForm.program_id}
+                      onChange={(e) => setLectureForm(prev => ({ ...prev, program_id: e.target.value }))}
                       className="w-full h-12 px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
                       required
                     >
@@ -403,43 +371,29 @@ const getProgramTitle = (programId) => {
                     </select>
                   </div>
                   <div>
-                    <Label htmlFor="lecture-program-slug">Program Slug (Read Only)</Label>
+                    <Label htmlFor="lecture-title">Title</Label>
                     <Input
-                      id="lecture-program-slug"
-                      value={lectureForm.program_slug}
-                      disabled
-                      placeholder="Auto-filled from program"
+                      id="lecture-title"
+                      value={lectureForm.title}
+                      onChange={(e) => setLectureForm(prev => ({ ...prev, title: e.target.value }))}
+                      required
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="lecture-level">Level (Read Only)</Label>
-                    <Input
-                      id="lecture-level"
-                      value={lectureForm.level}
-                      disabled
-                      placeholder="Auto-filled from program type"
-                    />
-                  </div>
-                  {lectureForm.level === 'master' && (
-                    <div>
-                      <Label htmlFor="lecture-cohort">Cohort Number</Label>
-                      <Input
-                        id="lecture-cohort"
-                        type="number"
-                        min="1"
-                        value={lectureForm.cohort_number}
-                        onChange={(e) => setLectureForm(prev => ({ ...prev, cohort_number: e.target.value }))}
-                        placeholder="e.g., 1"
-                        required
-                      />
-                    </div>
-                  )}
+                <div>
+                  <Label htmlFor="lecture-content">Content</Label>
+                  <textarea
+                    id="lecture-content"
+                    rows={6}
+                    value={lectureForm.content}
+                    onChange={(e) => setLectureForm(prev => ({ ...prev, content: e.target.value }))}
+                    className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20 resize-none"
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="lecture-category">Category</Label>
                     <Input
@@ -451,40 +405,40 @@ const getProgramTitle = (programId) => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lecture-title">Lecture Title</Label>
+                    <Label htmlFor="lecture-level">Level</Label>
+                    <select
+                      id="lecture-level"
+                      value={lectureForm.level}
+                      onChange={(e) => setLectureForm(prev => ({ ...prev, level: e.target.value }))}
+                      className="w-full h-12 px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
+                    >
+                      <option value="member_basic">Member Basic</option>
+                      <option value="member_intermediate">Member Intermediate</option>
+                      <option value="master_common">Master Common</option>
+                      <option value="master_advanced">Master Advanced</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="lecture-order">Order</Label>
                     <Input
-                      id="lecture-title"
-                      value={lectureForm.title}
-                      onChange={(e) => setLectureForm(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Enter lecture title"
+                      id="lecture-order"
+                      type="number"
+                      min="1"
+                      value={lectureForm.order}
+                      onChange={(e) => setLectureForm(prev => ({ ...prev, order: e.target.value }))}
                       required
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="lecture-embed-url">Video URL (must start with https://)</Label>
-                  <Input
-                    id="lecture-embed-url"
-                    type="url"
-                    value={lectureForm.embed_url}
-                    onChange={(e) => setLectureForm(prev => ({ ...prev, embed_url: e.target.value }))}
-                    placeholder="https://example.com/video"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="lecture-sort-order">Sort Order</Label>
-                  <Input
-                    id="lecture-sort-order"
-                    type="number"
-                    min="1"
-                    value={lectureForm.sort_order}
-                    onChange={(e) => setLectureForm(prev => ({ ...prev, sort_order: e.target.value }))}
-                    placeholder="e.g., 1"
-                    required
-                  />
+                  <div>
+                    <Label htmlFor="lecture-duration">Duration</Label>
+                    <Input
+                      id="lecture-duration"
+                      value={lectureForm.duration}
+                      onChange={(e) => setLectureForm(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="e.g., 45 minutes"
+                      required
+                    />
+                  </div>
                 </div>
                 
                 <div className="flex space-x-3 pt-4">

@@ -20,9 +20,8 @@ const ProgramDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCohort, setSelectedCohort] = useState("");
-const [courseType, setCourseType] = useState("common");
+  const [courseType, setCourseType] = useState("common");
   const [openAccordionId, setOpenAccordionId] = useState(null);
-  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
 
@@ -67,18 +66,11 @@ const [courseType, setCourseType] = useState("common");
     }
   };
 
-useEffect(() => {
+  useEffect(() => {
     if (slug) {
       loadProgramData();
     }
   }, [slug]);
-
-  // Auto-fill email when user is logged in
-  useEffect(() => {
-    if (isLoggedIn && currentUser?.emailAddress) {
-      setWaitlistEmail(currentUser.emailAddress);
-    }
-  }, [isLoggedIn, currentUser]);
 
   const filteredLectures = lectures.filter(lecture => {
     if (courseType === "common") {
@@ -92,7 +84,8 @@ useEffect(() => {
   const toggleAccordion = (lectureId) => {
     setOpenAccordionId(openAccordionId === lectureId ? null : lectureId);
   };
-const handleJoinWaitlist = async (e) => {
+
+  const handleJoinWaitlist = async (e) => {
     e.preventDefault();
     if (!waitlistEmail.trim()) {
       toast.error("Please enter a valid email address");
@@ -102,9 +95,8 @@ const handleJoinWaitlist = async (e) => {
     try {
       setWaitlistLoading(true);
       await addToWaitlist(waitlistEmail, program.slug);
-      toast.success("대기자 명단에 등록되었습니다");
-      setWaitlistEmail(isLoggedIn && currentUser?.emailAddress ? currentUser.emailAddress : "");
-      setShowWaitlistModal(false);
+      toast.success(`Successfully joined waitlist for ${program.title}!`);
+      setWaitlistEmail("");
     } catch (error) {
       console.error("Error joining waitlist:", error);
       toast.error(error.message || "Failed to join waitlist");
@@ -112,6 +104,7 @@ const handleJoinWaitlist = async (e) => {
       setWaitlistLoading(false);
     }
   };
+
   const getEmbedUrl = (videoUrl) => {
     if (!videoUrl) return "";
     // Convert various video URLs to embed format
@@ -344,8 +337,9 @@ const handleJoinWaitlist = async (e) => {
                   </p>
                 )}
               </div>
-{/* Join Waitlist Section */}
-              <div className="bg-navy-800 rounded-xl p-8 border border-gray-600 text-center">
+
+              {/* Join Waitlist Form */}
+              <div className="bg-navy-800 rounded-xl p-8 border border-gray-600">
                 <h3 className="text-2xl font-semibold text-white mb-4">
                   프로그램 참여하기
                 </h3>
@@ -353,73 +347,27 @@ const handleJoinWaitlist = async (e) => {
                   이 프로그램에 참여하려면 대기자 명단에 등록하세요.
                 </p>
                 
-                <Button
-                  onClick={() => setShowWaitlistModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 px-8 rounded-lg font-semibold transition-all"
-                >
-                  대기자 등록(Join Wait‑list)
-                </Button>
-              </div>
-
-              {/* Waitlist Modal */}
-              {showWaitlistModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                  <div className="bg-navy-800 rounded-xl p-8 border border-gray-600 max-w-md w-full mx-4">
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-2xl font-semibold text-white">
-                        대기자 등록
-                      </h3>
-                      <button
-                        onClick={() => setShowWaitlistModal(false)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        <ApperIcon name="X" size={24} />
-                      </button>
-                    </div>
-                    
-                    <form onSubmit={handleJoinWaitlist}>
-                      <div className="mb-4">
-                        <Label htmlFor="waitlist-email" className="block text-sm font-medium text-gray-300 mb-2">
-                          이메일 주소
-                        </Label>
-                        <Input
-                          id="waitlist-email"
-                          type="email"
-                          value={waitlistEmail}
-                          onChange={(e) => setWaitlistEmail(e.target.value)}
-                          className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-                          placeholder="이메일 주소를 입력하세요"
-                          required
-                        />
-                      </div>
-                      
-                      {/* Hidden program_slug field */}
-                      <input
-                        type="hidden"
-                        name="program_slug"
-                        value={program?.slug || ''}
-                      />
-                      
-                      <div className="flex gap-3 mt-6">
-                        <Button
-                          type="button"
-                          onClick={() => setShowWaitlistModal(false)}
-                          className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 rounded-lg font-medium transition-all"
-                        >
-                          취소
-                        </Button>
-                        <Button
-                          type="submit"
-                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-all"
-                          disabled={waitlistLoading}
-                        >
-                          {waitlistLoading ? "등록 중..." : "등록하기"}
-                        </Button>
-                      </div>
-                    </form>
+                <form onSubmit={handleJoinWaitlist} className="max-w-md mx-auto">
+                  <div className="mb-4">
+                    <input
+                      type="email"
+                      value={waitlistEmail}
+                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                      className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                      placeholder="이메일 주소를 입력하세요"
+                      required
+                    />
                   </div>
-                </div>
-              )}
+                  
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-all"
+                    disabled={waitlistLoading}
+                  >
+                    {waitlistLoading ? "등록 중..." : "대기자 등록 (Join Wait-list)"}
+                  </Button>
+                </form>
+              </div>
             </motion.div>
           </>
         )}
