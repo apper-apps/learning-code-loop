@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { getPrograms, createProgram, updateProgram, deleteProgram } from "@/services/api/programService";
 import Button from "@/components/atoms/Button";
@@ -16,6 +17,7 @@ import { formatDistanceToNow } from "date-fns";
 
 const AdminPrograms = () => {
   const { isAdmin } = useCurrentUser();
+  const navigate = useNavigate();
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,9 @@ const AdminPrograms = () => {
     title: "",
     slug: "",
     description: "",
+    thumbnail_url: "",
+    description_short: "",
+    description_long: "",
     type: "member",
     price: "",
     duration: "",
@@ -86,6 +91,9 @@ const AdminPrograms = () => {
         title: "",
         slug: "",
         description: "",
+        thumbnail_url: "",
+        description_short: "",
+        description_long: "",
         type: "member",
         price: "",
         duration: "",
@@ -94,6 +102,11 @@ const AdminPrograms = () => {
       });
       setShowCreateModal(false);
       toast.success("Program created successfully!");
+      
+      // Auto-navigate to the master program page if type is master
+      if (formData.type === "master") {
+        navigate(`/program/master/${formData.slug}`);
+      }
     } catch (err) {
       console.error("Failed to create program:", err);
       toast.error("Failed to create program");
@@ -119,6 +132,9 @@ const AdminPrograms = () => {
         title: "",
         slug: "",
         description: "",
+        thumbnail_url: "",
+        description_short: "",
+        description_long: "",
         type: "member",
         price: "",
         duration: "",
@@ -151,6 +167,9 @@ const AdminPrograms = () => {
       title: program.title,
       slug: program.slug,
       description: program.description,
+      thumbnail_url: program.thumbnail_url || "",
+      description_short: program.description_short || "",
+      description_long: program.description_long || "",
       type: program.type,
       price: program.price.toString(),
       duration: program.duration,
@@ -166,6 +185,9 @@ const AdminPrograms = () => {
       title: "",
       slug: "",
       description: "",
+      thumbnail_url: "",
+      description_short: "",
+      description_long: "",
       type: "member",
       price: "",
       duration: "",
@@ -288,7 +310,7 @@ const AdminPrograms = () => {
                 </div>
 
                 <p className="text-gray-300 mb-4 leading-relaxed line-clamp-3">
-                  {program.description}
+                  {program.description_short || program.description}
                 </p>
 
                 <div className="flex items-center justify-between mb-4">
@@ -337,7 +359,7 @@ const AdminPrograms = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-navy-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-navy-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-white">
@@ -351,7 +373,7 @@ const AdminPrograms = () => {
                 </button>
               </div>
               
-              <form onSubmit={editingProgram ? handleUpdateProgram : handleCreateProgram} className="space-y-4">
+              <form onSubmit={editingProgram ? handleUpdateProgram : handleCreateProgram} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="program-title">Title</Label>
@@ -381,7 +403,18 @@ const AdminPrograms = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="program-description">Description</Label>
+                  <Label htmlFor="program-thumbnail">Thumbnail URL</Label>
+                  <Input
+                    id="program-thumbnail"
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={programForm.thumbnail_url}
+                    onChange={(e) => setProgramForm(prev => ({ ...prev, thumbnail_url: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="program-description">Main Description</Label>
                   <textarea
                     id="program-description"
                     rows={4}
@@ -390,6 +423,31 @@ const AdminPrograms = () => {
                     className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20 resize-none"
                     required
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="program-description-short">Short Description</Label>
+                    <textarea
+                      id="program-description-short"
+                      rows={3}
+                      placeholder="Brief overview for cards and previews"
+                      value={programForm.description_short}
+                      onChange={(e) => setProgramForm(prev => ({ ...prev, description_short: e.target.value }))}
+                      className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20 resize-none"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="program-description-long">Long Description</Label>
+                    <textarea
+                      id="program-description-long"
+                      rows={3}
+                      placeholder="Detailed description for program pages"
+                      value={programForm.description_long}
+                      onChange={(e) => setProgramForm(prev => ({ ...prev, description_long: e.target.value }))}
+                      className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20 resize-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

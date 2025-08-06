@@ -147,7 +147,8 @@ function App() {
           <Route path="/" element={<Layout />}>
 <Route index element={<HomePage />} />
             <Route path="program" element={<ProgramsPage />} />
-            <Route path="program/master" element={<ProgramMasterPage />} />
+<Route path="program/master" element={<ProgramMasterPage />} />
+            <Route path="program/master/:slug" element={<ProgramDetailPage />} />
             <Route path="program/:slug" element={<ProgramDetailPage />} />
             <Route path="lecture/:id" element={<LectureDetailPage />} />
             <Route path="insight" element={<InsightPage />} />

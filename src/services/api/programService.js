@@ -10,13 +10,16 @@ const getApperClient = () => {
 export const getPrograms = async () => {
   try {
     const apperClient = getApperClient();
-    const params = {
+const params = {
       fields: [
         { field: { Name: "Name" } },
         { field: { Name: "Tags" } },
         { field: { Name: "slug" } },
         { field: { Name: "title" } },
         { field: { Name: "description" } },
+        { field: { Name: "thumbnail_url" } },
+        { field: { Name: "description_short" } },
+        { field: { Name: "description_long" } },
         { field: { Name: "has_common_course" } },
         { field: { Name: "type" } },
         { field: { Name: "price" } },
@@ -53,11 +56,14 @@ export const getProgramBySlug = async (slug) => {
     const apperClient = getApperClient();
     const params = {
       fields: [
-        { field: { Name: "Name" } },
+{ field: { Name: "Name" } },
         { field: { Name: "Tags" } },
         { field: { Name: "slug" } },
         { field: { Name: "title" } },
         { field: { Name: "description" } },
+        { field: { Name: "thumbnail_url" } },
+        { field: { Name: "description_short" } },
+        { field: { Name: "description_long" } },
         { field: { Name: "has_common_course" } },
         { field: { Name: "type" } },
         { field: { Name: "price" } },
@@ -99,11 +105,14 @@ export const createProgram = async (programData) => {
     
     // Filter to only include updateable fields
     const updateableData = {
-      Name: programData.title || programData.Name,
+Name: programData.title || programData.Name,
       Tags: programData.Tags || "",
       slug: programData.slug,
       title: programData.title,
       description: programData.description,
+      thumbnail_url: programData.thumbnail_url || "",
+      description_short: programData.description_short || "",
+      description_long: programData.description_long || "",
       has_common_course: Boolean(programData.has_common_course),
       type: programData.type,
       price: Number(programData.price),
@@ -163,10 +172,13 @@ export const updateProgram = async (id, programData) => {
     // Filter to only include updateable fields
     const updateableData = {
       Name: programData.title || programData.Name,
-      Tags: programData.Tags || "",
+Tags: programData.Tags || "",
       slug: programData.slug,
       title: programData.title,
       description: programData.description,
+      thumbnail_url: programData.thumbnail_url || "",
+      description_short: programData.description_short || "",
+      description_long: programData.description_long || "",
       has_common_course: Boolean(programData.has_common_course),
       type: programData.type,
       price: Number(programData.price),

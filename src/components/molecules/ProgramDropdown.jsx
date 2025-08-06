@@ -74,7 +74,7 @@ const ProgramDropdown = ({ programs = [] }) => {
                     </div>
                   </div>
                   {membershipPrograms.map((program) => (
-                    <Link
+<Link
                       key={program.Id}
                       to={`/program/${program.slug}`}
                       onClick={() => setIsOpen(false)}
@@ -82,7 +82,7 @@ const ProgramDropdown = ({ programs = [] }) => {
                     >
                       <div>
                         <div className="font-medium">{program.title}</div>
-                        <div className="text-sm text-gray-400">{program.description}</div>
+                        <div className="text-sm text-gray-400">{program.description_short || program.description}</div>
                       </div>
                     </Link>
                   ))}
@@ -98,16 +98,16 @@ const ProgramDropdown = ({ programs = [] }) => {
                       <span className="text-sm font-semibold text-yellow-400 uppercase tracking-wide">Master</span>
                     </div>
                   </div>
-                  {masterPrograms.map((program) => (
+{masterPrograms.map((program) => (
                     <Link
                       key={program.Id}
-                      to={`/program/${program.slug}`}
+                      to={`/program/master/${program.slug}`}
                       onClick={() => setIsOpen(false)}
                       className="flex items-center space-x-3 px-4 py-2 ml-6 text-gray-300 hover:text-white hover:bg-navy-700 rounded-md transition-colors duration-150"
                     >
                       <div>
                         <div className="font-medium">{program.title}</div>
-                        <div className="text-sm text-gray-400">{program.description}</div>
+                        <div className="text-sm text-gray-400">{program.description_short || program.description}</div>
                       </div>
                     </Link>
                   ))}
