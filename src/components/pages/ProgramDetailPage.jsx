@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { getProgramBySlug } from "@/services/api/programService";
 import { getLecturesByProgramId } from "@/services/api/lectureService";
 import { addToWaitlist } from "@/services/api/waitlistService";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import LectureList from "@/components/organisms/LectureList";
 import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
@@ -14,9 +15,9 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
 import ApperIcon from "@/components/ApperIcon";
-
 const ProgramDetailPage = () => {
   const { slug } = useParams();
+  const { currentUser, isAdmin } = useCurrentUser();
   const [program, setProgram] = useState(null);
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,6 @@ const ProgramDetailPage = () => {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [submittingWaitlist, setSubmittingWaitlist] = useState(false);
-
   const loadProgramData = async () => {
     try {
       setLoading(true);
@@ -174,11 +174,19 @@ const ProgramDetailPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Course Content</h2>
-              <div className="text-gray-400">
-                {lectures.length} lectures • {lectures.reduce((acc, lecture) => acc + parseInt(lecture.duration), 0)} minutes
+<div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Course Content</h2>
+                <div className="text-gray-400">
+                  {lectures.length} lectures • {lectures.reduce((acc, lecture) => acc + parseInt(lecture.duration), 0)} minutes
+                </div>
               </div>
+              {isAdmin && (
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2">
+                  <ApperIcon name="Plus" size={16} />
+                  <span>Add Lecture</span>
+                </Button>
+              )}
             </div>
 
             {lectures.length === 0 ? (
@@ -188,7 +196,11 @@ const ProgramDetailPage = () => {
                 icon="BookOpen"
               />
             ) : (
-              <LectureList lectures={lectures} programType={program.type} />
+              <LectureList 
+                lectures={lectures} 
+                programType={program.type} 
+                currentUser={currentUser}
+              />
             )}
           </motion.div>
         </div>
