@@ -1,0 +1,32 @@
+[
+  {
+    "Id": 1,
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "both",
+    "master_cohort": "2024-spring",
+    "is_admin": true,
+    "avatar": null,
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "Id": 2,
+    "email": "sarah.chen@example.com",
+    "name": "Sarah Chen",
+    "role": "member",
+    "master_cohort": null,
+    "is_admin": false,
+    "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=150&q=80",
+    "created_at": "2024-01-15T10:30:00Z"
+  },
+  {
+    "Id": 3,
+    "email": "marcus.thompson@example.com",
+    "name": "Marcus Thompson",
+    "role": "master",
+    "master_cohort": "2024-spring",
+    "is_admin": false,
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+    "created_at": "2024-01-16T14:15:00Z"
+  }
+]

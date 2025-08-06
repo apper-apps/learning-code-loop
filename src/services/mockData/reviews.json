@@ -1,0 +1,50 @@
+[
+  {
+    "Id": 1,
+    "text": "Love this platform! The courses are incredibly well-structured and the instructors really know their stuff. I've learned more in the past month than I did in years of trying to figure things out on my own.",
+    "likes": [1, 3, 7, 12, 15, 23, 45],
+    "featured": true,
+    "author_id": 2,
+    "author_name": "Sarah Chen",
+    "author_avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=150&q=80",
+    "rating": 5,
+    "program_id": 1,
+    "created_at": "2024-01-18T16:45:00Z"
+  },
+  {
+    "Id": 2,
+    "text": "The Text Influencer course completely transformed my approach to content creation. The psychology modules were particularly eye-opening. Worth every penny!",
+    "likes": [4, 8, 11, 19, 27],
+    "featured": false,
+    "author_id": 5,
+    "author_name": "Marcus Thompson",
+    "author_avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+    "rating": 5,
+    "program_id": 2,
+    "created_at": "2024-01-22T11:20:00Z"
+  },
+  {
+    "Id": 3,
+    "text": "Great content and excellent support from the community. The practical exercises really help cement the learning. Highly recommend for anyone serious about skill development.",
+    "likes": [2, 6, 9, 14, 18, 22, 29, 31],
+    "featured": false,
+    "author_id": 8,
+    "author_name": "Emily Rodriguez",
+    "author_avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80",
+    "rating": 4,
+    "program_id": 1,
+    "created_at": "2024-01-26T09:30:00Z"
+  },
+  {
+    "Id": 4,
+    "text": "The membership course exceeded my expectations. Clear explanations, real-world examples, and actionable insights. I'm already seeing results in my own projects.",
+    "likes": [1, 5, 10, 16, 25],
+    "featured": true,
+    "author_id": 12,
+    "author_name": "David Park",
+    "author_avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+    "rating": 5,
+    "program_id": 1,
+    "created_at": "2024-01-28T15:10:00Z"
+  }
+]

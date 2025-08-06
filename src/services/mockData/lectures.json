@@ -1,0 +1,57 @@
+[
+  {
+    "Id": 1,
+    "program_id": 1,
+    "title": "Getting Started with Content Creation",
+    "content": "Welcome to your journey in content creation! In this foundational lecture, we'll explore the essential principles that make content truly engaging and valuable to your audience. You'll learn about understanding your target audience, developing your unique voice, and setting up the right mindset for consistent creation. This lecture includes practical exercises to help you identify your content pillars and create your first piece of content.",
+    "category": "Fundamentals",
+    "level": "member_basic",
+    "order": 1,
+    "duration": "45 minutes",
+    "created_at": "2024-01-16T09:00:00Z"
+  },
+  {
+    "Id": 2,
+    "program_id": 1,
+    "title": "Building Your Content Strategy",
+    "content": "A solid content strategy is the backbone of successful content creation. In this lecture, you'll learn how to develop a comprehensive content strategy that aligns with your goals and resonates with your audience. We'll cover content planning, editorial calendars, content types, and distribution strategies. By the end of this session, you'll have a clear roadmap for your content creation journey.",
+    "category": "Fundamentals",
+    "level": "member_basic",
+    "order": 2,
+    "duration": "52 minutes",
+    "created_at": "2024-01-17T09:00:00Z"
+  },
+  {
+    "Id": 3,
+    "program_id": 1,
+    "title": "Advanced Writing Techniques",
+    "content": "Take your writing to the next level with advanced techniques that capture attention and drive engagement. This lecture covers storytelling frameworks, persuasive writing principles, and advanced formatting techniques. You'll learn how to craft compelling headlines, create emotional connections, and structure your content for maximum impact. Practical examples and exercises will help you implement these techniques immediately.",
+    "category": "Advanced Skills",
+    "level": "member_intermediate",
+    "order": 3,
+    "duration": "38 minutes",
+    "created_at": "2024-01-18T09:00:00Z"
+  },
+  {
+    "Id": 4,
+    "program_id": 1,
+    "title": "Monetization Strategies",
+    "content": "Learn proven strategies to monetize your content and turn your passion into profit. This comprehensive lecture covers multiple revenue streams including affiliate marketing, sponsored content, digital products, and subscription models. You'll understand how to price your services, negotiate with brands, and build sustainable income streams. Real case studies and practical templates are included.",
+    "category": "Advanced Skills",
+    "level": "member_intermediate",
+    "order": 4,
+    "duration": "61 minutes",
+    "created_at": "2024-01-19T09:00:00Z"
+  },
+  {
+    "Id": 5,
+    "program_id": 2,
+    "title": "Master-Level Influence Psychology",
+    "content": "Dive deep into the psychology of influence and persuasion at the master level. This advanced lecture explores cognitive biases, emotional triggers, and behavioral psychology principles that master influencers use to create compelling content. You'll learn sophisticated techniques for building trust, creating urgency, and driving action through text-based content. This is part of our common master course curriculum.",
+    "category": "Master Psychology",
+    "level": "master_common",
+    "order": 1,
+    "duration": "75 minutes",
+    "created_at": "2024-01-20T09:00:00Z"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "Id": 1,
+    "slug": "membership",
+    "title": "Membership Course",
+    "description": "Comprehensive member course designed to build foundational skills and knowledge. Perfect for beginners starting their learning journey.",
+    "has_common_course": false,
+    "type": "member",
+    "price": 299,
+    "duration": "8 weeks",
+    "level": "Beginner to Intermediate",
+    "created_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "Id": 2,
+    "slug": "text-influencer",
+    "title": "Text Influencer Mastery",
+    "description": "Advanced master course for becoming a successful text-based content creator and social media influencer. Includes common course modules.",
+    "has_common_course": true,
+    "type": "master",
+    "price": 799,
+    "duration": "12 weeks",
+    "level": "Advanced",
+    "created_at": "2024-01-15T10:00:00Z"
+  }
+]
