@@ -39,10 +39,9 @@ const ProgramDetailPage = () => {
   const hasMasterAccess = () => {
     const role = getUserRole();
     return role === "master" || role === "both";
-  };
+};
 
   const loadProgramData = async () => {
-const loadProgramData = async () => {
     try {
       setLoading(true);
       setError("");
