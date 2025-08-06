@@ -16,15 +16,15 @@ const LectureList = ({
   const hasAccess = hasMasterAccess || (currentUser && (currentUser.role === "member" || currentUser.role === "both"));
   const isFirstLecture = (index) => index === 0;
 // Filter lectures based on cohort and course type
-  const filteredLectures = lectures.filter(lecture => {
+const filteredLectures = lectures.filter(lecture => {
     // If no cohort selected, show all lectures
     if (!selectedCohort) return true;
     
     // Filter by course type if program has common course
     if (courseType === "common") {
-      return lecture.level === "master_common" || !lecture.cohort;
+      return lecture.level === "master_common";
     } else if (courseType === "cohort") {
-      return lecture.cohort === selectedCohort && lecture.level !== "master_common";
+      return lecture.level === "master" && lecture.cohort_number === selectedCohort;
     }
     
     return true;

@@ -7,39 +7,35 @@ import { getProgramBySlug } from "@/services/api/programService";
 import { addToWaitlist } from "@/services/api/waitlistService";
 import { getLecturesByProgramId } from "@/services/api/lectureService";
 import ApperIcon from "@/components/ApperIcon";
-import LectureList from "@/components/organisms/LectureList";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
-import Badge from "@/components/atoms/Badge";
 import Input from "@/components/atoms/Input";
 import Button from "@/components/atoms/Button";
 import Label from "@/components/atoms/Label";
+
 const ProgramDetailPage = () => {
   const { slug } = useParams();
-  const { currentUser, isAdmin } = useCurrentUser();
   const [program, setProgram] = useState(null);
   const [lectures, setLectures] = useState([]);
-  const [cohorts, setCohorts] = useState([]);
-  const [selectedCohort, setSelectedCohort] = useState("");
-  const [courseType, setCourseType] = useState("common"); // "common" or "cohort"
-  const [accordionOpen, setAccordionOpen] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [selectedCohort, setSelectedCohort] = useState("");
+  const [courseType, setCourseType] = useState("common");
+  const [openAccordionId, setOpenAccordionId] = useState(null);
   const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [submittingWaitlist, setSubmittingWaitlist] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
 
-  // Check if user has master access
+  const { currentUser, isLoggedIn, isAdmin } = useCurrentUser();
+
   const getUserRole = () => {
     if (!currentUser?.accounts?.[0]) return null;
     return currentUser.accounts[0].role || currentUser.accounts[0].userRole;
   };
 
-  const hasMasterAccess = () => {
+  const canAccessMasterContent = () => {
     const role = getUserRole();
     return role === "master" || role === "both";
-};
+  };
 
   const loadProgramData = async () => {
     try {
@@ -47,304 +43,333 @@ const ProgramDetailPage = () => {
       setError("");
       
       const programData = await getProgramBySlug(slug);
-      const lecturesData = await getLecturesByProgramId(programData.Id);
-      
-      setProgram(programData);
-      setLectures(lecturesData);
-      
-      // For demo purposes, set mock cohort data
-      // In real implementation, fetch from cohort service
-      setCohorts([
-        { Id: 1, Name: "Cohort 2024-Q1" },
-        { Id: 2, Name: "Cohort 2024-Q2" },
-        { Id: 3, Name: "Cohort 2024-Q3" }
-      ]);
-      
-      // Set default cohort if user has master access
-      if (hasMasterAccess() && currentUser?.master_cohort) {
-        setSelectedCohort(currentUser.master_cohort);
+      if (!programData) {
+        setError("Program not found");
+        return;
       }
       
+      setProgram(programData);
+      
+      // Load lectures for this program
+      const lecturesData = await getLecturesByProgramId(programData.Id);
+      setLectures(lecturesData || []);
+      
+      // Set default cohort from user's master_cohort
+      if (currentUser?.master_cohort) {
+        setSelectedCohort(currentUser.master_cohort);
+      }
     } catch (err) {
-      console.error("Failed to load program:", err);
-      setError("Failed to load program details");
+      console.error("Error loading program data:", err);
+      setError(err.message || "Failed to load program data");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProgramData();
+    if (slug) {
+      loadProgramData();
+    }
   }, [slug]);
 
-  const handleWaitlistSubmit = async (e) => {
+  const filteredLectures = lectures.filter(lecture => {
+    if (courseType === "common") {
+      return lecture.level === "master_common";
+    } else if (courseType === "cohort") {
+      return lecture.level === "master" && lecture.cohort_number === selectedCohort;
+    }
+    return false;
+  });
+
+  const toggleAccordion = (lectureId) => {
+    setOpenAccordionId(openAccordionId === lectureId ? null : lectureId);
+  };
+
+  const handleJoinWaitlist = async (e) => {
     e.preventDefault();
     if (!waitlistEmail.trim()) {
-      toast.error("Please enter your email address");
+      toast.error("Please enter a valid email address");
       return;
     }
 
     try {
-      setSubmittingWaitlist(true);
-      await addToWaitlist(waitlistEmail.trim(), program.slug);
-      toast.success("Successfully added to waitlist! We'll notify you when enrollment opens.");
+      setWaitlistLoading(true);
+      await addToWaitlist(waitlistEmail, program.slug);
+      toast.success(`Successfully joined waitlist for ${program.title}!`);
       setWaitlistEmail("");
-      setShowWaitlist(false);
-    } catch (err) {
-      console.error("Failed to add to waitlist:", err);
-      toast.error(err.message || "Failed to add to waitlist");
+    } catch (error) {
+      console.error("Error joining waitlist:", error);
+      toast.error(error.message || "Failed to join waitlist");
     } finally {
-      setSubmittingWaitlist(false);
+      setWaitlistLoading(false);
     }
+  };
+
+  const getEmbedUrl = (videoUrl) => {
+    if (!videoUrl) return "";
+    // Convert various video URLs to embed format
+    if (videoUrl.includes("youtube.com/watch")) {
+      const videoId = videoUrl.split("v=")[1]?.split("&")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (videoUrl.includes("youtu.be/")) {
+      const videoId = videoUrl.split("youtu.be/")[1]?.split("?")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return videoUrl; // Return as-is if already an embed URL
   };
 
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={loadProgramData} />;
-  if (!program) return <Error title="Program not found" message="The program you're looking for doesn't exist." />;
+  if (!program) return <Error message="Program not found" />;
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <nav className="mb-8">
-          <div className="flex items-center space-x-2 text-sm text-gray-400">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
-            <ApperIcon name="ChevronRight" size={16} />
-            <Link to="/program" className="hover:text-white transition-colors">Programs</Link>
-            <ApperIcon name="ChevronRight" size={16} />
-            <span className="text-white">{program.title}</span>
-          </div>
-        </nav>
-
-        {/* Program Header */}
-<div className="mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card-navy p-8"
-          >
-            {hasMasterAccess() ? (
-              // Master/Both users - Full interface
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-xl">
-                    <ApperIcon 
-                      name="Crown" 
-                      size={32} 
-                      className="text-yellow-400"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-                        {program.title}
-                      </h1>
-                      {isAdmin && (
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2">
-                          <ApperIcon name="Plus" size={16} />
-                          <span>Add Lecture</span>
-                        </Button>
-                      )}
-                    </div>
-                    <Badge variant="featured" className="mb-4">
-                      MASTER PROGRAM
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Cohort Selection */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1">
-                    <Label htmlFor="cohort-select" className="text-white mb-2 block">Select Cohort</Label>
-                    <select
-                      id="cohort-select"
-                      value={selectedCohort}
-                      onChange={(e) => setSelectedCohort(e.target.value)}
-                      className="w-full px-3 py-2 bg-navy-800 border border-blue-400/20 rounded-md text-white focus:outline-none focus:border-blue-400"
+    <div className="min-h-screen bg-navy-900 pt-20 pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {canAccessMasterContent() ? (
+          // Master/Both role view
+          <>
+            {/* Blue Gradient Banner with Program Title */}
+            <div className="relative mb-8 rounded-2xl overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 px-8 py-12">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <motion.h1
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-4xl md:text-5xl font-bold text-white mb-4"
                     >
-                      <option value="">Select a cohort</option>
-                      {cohorts.map(cohort => (
-                        <option key={cohort.Id} value={cohort.Name}>
-                          {cohort.Name}
-                        </option>
-                      ))}
-                    </select>
+                      {program.title}
+                    </motion.h1>
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="text-xl text-blue-100 max-w-3xl"
+                    >
+                      {program.description}
+                    </motion.p>
                   </div>
-
-                  {/* Course Type Toggle */}
-                  {program.has_common_course && (
-                    <div className="flex-1">
-                      <Label className="text-white mb-2 block">Course Type</Label>
-                      <div className="flex bg-navy-800 rounded-md border border-blue-400/20 p-1">
-                        <button
-                          onClick={() => setCourseType("common")}
-                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-                            courseType === "common"
-                              ? "bg-blue-600 text-white"
-                              : "text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          Common Course
-                        </button>
-                        <button
-                          onClick={() => setCourseType("cohort")}
-                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-                            courseType === "cohort"
-                              ? "bg-blue-600 text-white"
-                              : "text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          Cohort Course
-                        </button>
-                      </div>
-                    </div>
+                  
+                  {/* Admin Only: Add Lecture Button */}
+                  {isAdmin && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <Link to={`/admin/lectures?programId=${program.Id}`}>
+                        <Button className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border-2 transition-all">
+                          <ApperIcon name="Plus" size={18} className="mr-2" />
+                          강의 추가
+                        </Button>
+                      </Link>
+                    </motion.div>
                   )}
                 </div>
-
-                <p className="text-lg text-gray-300 leading-relaxed">
-                  {program.description}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <ApperIcon name="Clock" size={20} />
-                    <span>{program.duration}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <ApperIcon name="BarChart" size={20} />
-                    <span>{program.level}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <ApperIcon name="BookOpen" size={20} />
-                    <span>{lectures.length} Lectures</span>
-                  </div>
-                </div>
               </div>
-            ) : (
-              // Non-master users - Simple header + Join Waitlist
-              <div className="text-center space-y-6">
-                <div className="flex items-center justify-center space-x-4 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-xl">
-                    <ApperIcon name="Crown" size={32} className="text-yellow-400" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                      {program.title}
-                    </h1>
-                    <Badge variant="featured">MASTER PROGRAM</Badge>
-                  </div>
-                </div>
-                
-                <p className="text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto">
-                  {program.description}
-                </p>
+            </div>
 
-                <Button 
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
-                  onClick={() => setShowWaitlist(true)}
-                >
-                  <ApperIcon name="Mail" size={24} className="mr-3" />
-                  Join Wait-list
-                </Button>
-              </div>
-            )}
-          </motion.div>
-</div>
-
-        {/* Course Content - Only show for master users */}
-        {hasMasterAccess() && (
-          <div className="space-y-8">
+            {/* Controls: Cohort Dropdown and Course Type Toggle */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.3 }}
+              className="mb-8 p-6 bg-navy-800 rounded-xl border border-gray-600"
             >
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Course Content</h2>
-                  <div className="text-gray-400">
-                    {lectures.length} lectures • {lectures.reduce((acc, lecture) => acc + parseInt(lecture.duration || 0), 0)} minutes
-                  </div>
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                {/* Cohort Dropdown */}
+                <div className="flex-1">
+                  <label htmlFor="cohort" className="block text-sm font-medium text-gray-300 mb-2">
+                    기수 (Cohort)
+                  </label>
+                  <select
+                    id="cohort"
+                    value={selectedCohort}
+                    onChange={(e) => setSelectedCohort(e.target.value)}
+                    className="w-full md:w-48 px-3 py-2 bg-navy-900 border border-gray-600 rounded-md text-white focus:outline-none focus:border-blue-400"
+                  >
+                    <option value="">기수를 선택하세요</option>
+                    <option value="1">1기</option>
+                    <option value="2">2기</option>
+                    <option value="3">3기</option>
+                    <option value="4">4기</option>
+                    <option value="5">5기</option>
+                  </select>
                 </div>
+
+                {/* Course Type Toggle - Hide if has_common_course is false */}
+                {program.has_common_course && (
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      과정 유형
+                    </label>
+                    <div className="flex bg-navy-900 rounded-md border border-gray-600 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setCourseType("common")}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                          courseType === "common"
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-400 hover:text-white hover:bg-navy-700"
+                        }`}
+                      >
+                        공통 과정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCourseType("cohort")}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                          courseType === "cohort"
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-400 hover:text-white hover:bg-navy-700"
+                        }`}
+                      >
+                        해당 기수 과정
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Lectures Accordion */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="space-y-4"
+            >
+              {filteredLectures.length === 0 ? (
+                <div className="text-center py-12 bg-navy-800 rounded-xl border border-gray-600">
+                  <ApperIcon name="BookOpen" size={48} className="text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">강의가 없습니다</h3>
+                  <p className="text-gray-400">
+                    {courseType === "cohort" && !selectedCohort
+                      ? "기수를 선택해주세요."
+                      : "선택된 조건에 맞는 강의가 없습니다."}
+                  </p>
+                </div>
+              ) : (
+                filteredLectures.map((lecture, index) => (
+                  <motion.div
+                    key={lecture.Id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    className="bg-navy-800 rounded-xl border border-gray-600 overflow-hidden"
+                  >
+                    {/* Accordion Header */}
+                    <button
+                      onClick={() => toggleAccordion(lecture.Id)}
+                      className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-navy-700 transition-colors"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">{lecture.title}</h3>
+                          {lecture.duration && (
+                            <p className="text-sm text-gray-400">길이: {lecture.duration}</p>
+                          )}
+                        </div>
+                      </div>
+                      <ApperIcon
+                        name={openAccordionId === lecture.Id ? "ChevronUp" : "ChevronDown"}
+                        size={20}
+                        className="text-gray-400"
+                      />
+                    </button>
+
+                    {/* Accordion Content */}
+                    {openAccordionId === lecture.Id && (
+                      <div className="px-6 pb-6 border-t border-gray-600">
+                        {/* Lecture Description */}
+                        {lecture.description && (
+                          <div className="mb-4 pt-4">
+                            <p className="text-gray-300">{lecture.description}</p>
+                          </div>
+                        )}
+
+                        {/* Video Embed */}
+                        {lecture.videoUrl && (
+                          <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                            <iframe
+                              src={getEmbedUrl(lecture.videoUrl)}
+                              title={lecture.title}
+                              width="100%"
+                              height="100%"
+                              frameBorder="0"
+                              allowFullScreen
+                              className="w-full h-full"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </>
+        ) : (
+          // Free/Member role view - Only show description and waitlist button
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center max-w-4xl mx-auto"
+            >
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                {program.title}
+              </h1>
+              
+              <div className="bg-navy-800 rounded-xl p-8 border border-gray-600 mb-8">
+                <p className="text-xl text-gray-300 leading-relaxed mb-6">
+                  {program.description}
+                </p>
+                
+                {program.description_long && (
+                  <p className="text-gray-400 leading-relaxed">
+                    {program.description_long}
+                  </p>
+                )}
               </div>
 
-              {lectures.length === 0 ? (
-                <Empty
-                  title="No lectures available"
-                  message="This program doesn't have any lectures yet. Check back soon!"
-                  icon="BookOpen"
-                />
-              ) : (
-                <LectureList 
-                  lectures={lectures} 
-                  programType={program.type} 
-                  currentUser={currentUser}
-                  selectedCohort={selectedCohort}
-                  courseType={courseType}
-                  accordionOpen={accordionOpen}
-                  setAccordionOpen={setAccordionOpen}
-                  hasMasterAccess={hasMasterAccess()}
-                />
-              )}
-            </motion.div>
-          </div>
-        )}
-        {/* Waitlist Modal */}
-        {showWaitlist && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-navy-800 rounded-lg p-6 w-full max-w-md"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Join Waitlist</h3>
-                <button
-                  onClick={() => setShowWaitlist(false)}
-                  className="p-1 text-gray-400 hover:text-white transition-colors"
-                >
-                  <ApperIcon name="X" size={20} />
-                </button>
-              </div>
-              
-              <p className="text-gray-300 mb-6">
-                Get notified when enrollment for {program.title} opens up.
-              </p>
-              
-              <form onSubmit={handleWaitlistSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="waitlist-email">Email Address</Label>
-                  <Input
-                    id="waitlist-email"
-                    type="email"
-                    value={waitlistEmail}
-                    onChange={(e) => setWaitlistEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
+              {/* Join Waitlist Form */}
+              <div className="bg-navy-800 rounded-xl p-8 border border-gray-600">
+                <h3 className="text-2xl font-semibold text-white mb-4">
+                  프로그램 참여하기
+                </h3>
+                <p className="text-gray-300 mb-6">
+                  이 프로그램에 참여하려면 대기자 명단에 등록하세요.
+                </p>
                 
-                <div className="flex space-x-3">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setShowWaitlist(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
+                <form onSubmit={handleJoinWaitlist} className="max-w-md mx-auto">
+                  <div className="mb-4">
+                    <input
+                      type="email"
+                      value={waitlistEmail}
+                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                      className="w-full px-4 py-3 bg-navy-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                      placeholder="이메일 주소를 입력하세요"
+                      required
+                    />
+                  </div>
+                  
                   <Button
                     type="submit"
-                    disabled={submittingWaitlist}
-                    className="flex-1"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-all"
+                    disabled={waitlistLoading}
                   >
-                    {submittingWaitlist ? "Adding..." : "Join Waitlist"}
+                    {waitlistLoading ? "등록 중..." : "대기자 등록 (Join Wait-list)"}
                   </Button>
-                </div>
-              </form>
+                </form>
+              </div>
             </motion.div>
-          </div>
+          </>
         )}
       </div>
     </div>
